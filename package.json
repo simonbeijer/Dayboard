@@ -2,7 +2,7 @@
   "name": "dayboard",
   "version": "1.0.0",
   "description": "",
-  "main": "out/main/index.js",
+  "main": "out/main/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "electron-vite dev",
@@ -20,6 +20,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^41.2.1",
+    "electron-vite": "^5.0.0",
     "vite": "^7.3.2"
   }
 }
