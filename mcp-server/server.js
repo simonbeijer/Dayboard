@@ -69,6 +69,18 @@ server.tool(
   }
 );
 
+server.tool(
+  'end_day',
+  'Avsluta dagen. Rensar listan och visar ett meddelande.',
+  { message: z.string().describe('Peppande avslutsmeddelande') },
+  async ({ message }) => {
+    storage.endDay(message);
+    return {
+      content: [{ type: 'text', text: `Dagen avslutad: "${message}"` }],
+    };
+  }
+);
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);

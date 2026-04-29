@@ -14,26 +14,47 @@ function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-function readTodos() {
+function readData() {
   ensureDataDir();
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    return JSON.parse(raw).todos;
+    return JSON.parse(raw);
   } catch (err) {
-    if (err.code === 'ENOENT') return [];
+    if (err.code === 'ENOENT') return { todos: [], endDayMessage: null };
     throw err;
   }
 }
 
-function writeTodos(todos) {
+function writeData(data) {
   ensureDataDir();
   const tmp = DATA_FILE + '.tmp.' + process.pid;
-  fs.writeFileSync(tmp, JSON.stringify({ todos }, null, 2) + '\n');
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2) + '\n');
   fs.renameSync(tmp, DATA_FILE);
 }
 
+function readTodos() {
+  return readData().todos;
+}
+
+function writeTodos(todos) {
+  const data = readData();
+  data.todos = todos;
+  writeData(data);
+}
+
+function endDay(message) {
+  writeData({
+    todos: [],
+    endDayMessage: message
+  });
+}
+
+function getEndDayMessage() {
+  return readData().endDayMessage;
+}
+
 function addTodo(text) {
-  const todos = readTodos();
+  const data = readData();
   const todo = {
     id: crypto.randomUUID(),
     text,
@@ -41,8 +62,9 @@ function addTodo(text) {
     createdAt: new Date().toISOString(),
     completedAt: null,
   };
-  todos.push(todo);
-  writeTodos(todos);
+  data.todos.push(todo);
+  data.endDayMessage = null; // Clear message when new todo added
+  writeData(data);
   return todo;
 }
 
@@ -96,4 +118,6 @@ module.exports = {
   markDone,
   markUndone,
   deleteTodo,
+  endDay,
+  getEndDayMessage,
 };

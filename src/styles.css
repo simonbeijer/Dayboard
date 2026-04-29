@@ -145,3 +145,21 @@ main {
   border-top: 1px solid var(--border);
   margin-top: auto;
 }
+
+.end-day-view {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.end-day-message {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--fg);
+  margin-bottom: 12px;
+}
+
+.end-day-sub {
+  font-size: 13px;
+  color: var(--muted);
+}

@@ -51,6 +51,7 @@ app.whenReady().then(() => {
   watchTodos();
 
   ipcMain.handle('get-todos', () => storage.readTodos());
+  ipcMain.handle('get-end-day-message', () => storage.getEndDayMessage());
   ipcMain.handle('add-todo', (_event, text) => storage.addTodo(text));
   ipcMain.handle('mark-done', (_event, id) => storage.markDone(id));
   ipcMain.handle('mark-undone', (_event, id) => storage.markUndone(id));

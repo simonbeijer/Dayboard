@@ -2,17 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 
 export default function App() {
   const [todos, setTodos] = useState([]);
+  const [endDayMessage, setEndDayMessage] = useState(null);
   const [input, setInput] = useState('');
   const inputRef = useRef(null);
 
-  async function loadTodos() {
+  async function loadData() {
     const data = await window.api.getTodos();
+    const message = await window.api.getEndDayMessage();
     setTodos(data);
+    setEndDayMessage(message);
   }
 
   useEffect(() => {
-    loadTodos();
-    const cleanup = window.api.onTodosChanged(() => loadTodos());
+    loadData();
+    const cleanup = window.api.onTodosChanged(() => loadData());
     return cleanup;
   }, []);
 
@@ -22,7 +25,7 @@ export default function App() {
     if (!text) return;
     setInput('');
     await window.api.addTodo(text);
-    await loadTodos();
+    await loadData();
     inputRef.current?.focus();
   }
 
@@ -32,12 +35,12 @@ export default function App() {
     } else {
       await window.api.markDone(todo.id);
     }
-    await loadTodos();
+    await loadData();
   }
 
   async function handleDelete(todo) {
     await window.api.deleteTodo(todo.id);
-    await loadTodos();
+    await loadData();
   }
 
   const pending = todos.filter((t) => !t.done);
@@ -59,36 +62,45 @@ export default function App() {
             className="add-input"
           />
         </form>
-        {todos.length === 0 && (
-          <p className="empty">Inga todos än — lägg till något eller be Claude fylla din lista</p>
+        {endDayMessage ? (
+          <div className="end-day-view">
+            <p className="end-day-message">{endDayMessage}</p>
+            <p className="end-day-sub">Skriv något ovan för att börja en ny dag</p>
+          </div>
+        ) : (
+          <>
+            {todos.length === 0 && (
+              <p className="empty">Inga todos än — lägg till något eller be Claude fylla din lista</p>
+            )}
+            <ul className="todo-list">
+              {pending.map((t) => (
+                <li key={t.id} className="todo-item">
+                  <input
+                    type="checkbox"
+                    checked={false}
+                    onChange={() => handleToggle(t)}
+                    className="todo-checkbox"
+                  />
+                  <span className="todo-text">{t.text}</span>
+                  <button className="todo-delete" onClick={() => handleDelete(t)}>×</button>
+                </li>
+              ))}
+              {done.length > 0 && pending.length > 0 && <li className="separator" />}
+              {done.map((t) => (
+                <li key={t.id} className="todo-item done">
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    onChange={() => handleToggle(t)}
+                    className="todo-checkbox"
+                  />
+                  <span className="todo-text">{t.text}</span>
+                  <button className="todo-delete" onClick={() => handleDelete(t)}>×</button>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
-        <ul className="todo-list">
-          {pending.map((t) => (
-            <li key={t.id} className="todo-item">
-              <input
-                type="checkbox"
-                checked={false}
-                onChange={() => handleToggle(t)}
-                className="todo-checkbox"
-              />
-              <span className="todo-text">{t.text}</span>
-              <button className="todo-delete" onClick={() => handleDelete(t)}>×</button>
-            </li>
-          ))}
-          {done.length > 0 && pending.length > 0 && <li className="separator" />}
-          {done.map((t) => (
-            <li key={t.id} className="todo-item done">
-              <input
-                type="checkbox"
-                checked={true}
-                onChange={() => handleToggle(t)}
-                className="todo-checkbox"
-              />
-              <span className="todo-text">{t.text}</span>
-              <button className="todo-delete" onClick={() => handleDelete(t)}>×</button>
-            </li>
-          ))}
-        </ul>
       </main>
       {todos.length > 0 && (
         <footer className="footer">

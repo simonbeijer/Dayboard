@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
   getTodos: () => ipcRenderer.invoke('get-todos'),
+  getEndDayMessage: () => ipcRenderer.invoke('get-end-day-message'),
   addTodo: (text) => ipcRenderer.invoke('add-todo', text),
   markDone: (id) => ipcRenderer.invoke('mark-done', id),
   markUndone: (id) => ipcRenderer.invoke('mark-undone', id),
