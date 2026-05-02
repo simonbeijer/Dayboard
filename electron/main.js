@@ -24,26 +24,53 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
+
+  // Safety net: reconcile state whenever the window regains focus, in case
+  // the watcher missed an event.
+  mainWindow.on('focus', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('todos-changed');
+    }
+  });
 }
 
 function watchTodos() {
   const dir = path.dirname(storage.DATA_FILE);
+  const fileName = path.basename(storage.DATA_FILE);
   fs.mkdirSync(dir, { recursive: true });
 
-  // Ensure file exists for watcher
   if (!fs.existsSync(storage.DATA_FILE)) {
     fs.writeFileSync(storage.DATA_FILE, JSON.stringify({ todos: [] }, null, 2) + '\n');
   }
 
   let debounceTimer;
-  watcher = fs.watch(storage.DATA_FILE, () => {
+  const fire = () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('todos-changed');
       }
     }, 75);
-  });
+  };
+
+  // Watch the directory, not the file: atomic rename replaces the inode and
+  // fs.watch on macOS silently drops a watcher attached directly to the file.
+  const attach = () => {
+    if (watcher) {
+      try { watcher.close(); } catch (_) {}
+      watcher = null;
+    }
+    try {
+      watcher = fs.watch(dir, (_eventType, changed) => {
+        if (!changed || changed === fileName) fire();
+      });
+      watcher.on('error', () => setTimeout(attach, 200));
+    } catch (_) {
+      setTimeout(attach, 500);
+    }
+  };
+
+  attach();
 }
 
 app.whenReady().then(() => {
