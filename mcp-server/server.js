@@ -31,7 +31,7 @@ server.tool(
 
 server.tool(
   'list_todos',
-  'Hämta användarens aktuella todos. Använd för att se status, hitta id:n innan mark_done/mark_undone/delete_todo, eller svara på frågor som "vad har jag kvar?". Returnerar en kompakt rad per uppgift: [ ] eller [x], 8-teckens id-prefix, och text. Filter "pending" = öppna, "done" = klara, "all" = båda (default).',
+  'Hämta användarens aktuella todos. Använd för att se status på todo samt tidpunk, hitta id:n innan mark_done/mark_undone/delete_todo, eller svara på frågor som "vad har jag kvar?". Returnerar en kompakt rad per uppgift: [ ] eller [x], 8-teckens id-prefix, och text. Filter "pending" = öppna, "done" = klara, "all" = båda (default).',
   {
     filter: z
       .enum(['all', 'pending', 'done'])
@@ -40,6 +40,8 @@ server.tool(
   },
   async ({ filter }) => {
     const todos = storage.listTodos(filter || 'all');
+    const now = new Date().toLocaleString('sv-SE');
+    const header = `Current time: ${now}\n---\n`;
     if (todos.length === 0) {
       const empty =
         filter === 'pending'
@@ -52,7 +54,7 @@ server.tool(
     const lines = todos.map(
       (t) => `${t.done ? '[x]' : '[ ]'} ${t.id.slice(0, 8)}  ${t.text}`
     );
-    return { content: [{ type: 'text', text: lines.join('\n') }] };
+    return { content: [{ type: 'text', text: header + (todos.length === 0 ? empty : lines.join('\n')) }] };
   }
 );
 
@@ -183,13 +185,13 @@ function watchAndNotify() {
       try {
         server.server.sendResourceUpdated({ uri: RESOURCE_URI });
         server.server.sendResourceListChanged();
-      } catch (_) {}
+      } catch (_) { }
     }, 75);
   };
 
   const attach = () => {
     if (watcher) {
-      try { watcher.close(); } catch (_) {}
+      try { watcher.close(); } catch (_) { }
       watcher = null;
     }
     try {
