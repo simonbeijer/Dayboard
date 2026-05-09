@@ -32,6 +32,11 @@ npm run build:mac
 
 Output i `dist/`.
 
+### Installera
+
+Öppna `dist/Dayboard-1.0.0-arm64.dmg`, dra appen till `Applications`. 
+
+
 ## Koppla till Claude Desktop
 
 Lägg till i `~/Library/Application Support/Claude/claude_desktop_config.json`:
@@ -48,6 +53,13 @@ Lägg till i `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```
 
 Starta om Claude Desktop (Cmd+Q). Om `node` inte hittas (nvm-användare): kör `which node` och använd full sökväg som `command`.
+
+## Koppla till Claude Code
+
+```bash
+claude mcp add dayboard node /absolut/sökväg/till/dayboard/mcp-server/server.js
+claude mcp list
+```
 
 ## MCP-verktyg
 
